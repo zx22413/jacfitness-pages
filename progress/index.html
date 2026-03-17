@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jacfitness — 進度總覽</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Microsoft JhengHei', 'Noto Sans TC', sans-serif; background: #0a0a0a; color: #f0f0f0; padding: 40px; max-width: 1100px; margin: 0 auto; }
+  a { color: #74c0fc; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .breadcrumb { color: #666; font-size: 0.9em; margin-bottom: 24px; }
+  h1 { font-size: 2.2em; margin-bottom: 4px; letter-spacing: 2px; }
+  .sync-time { color: #666; font-size: 0.95em; margin-bottom: 32px; }
+  h2 { font-size: 1.5em; color: #ffd700; margin-top: 40px; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid #222; }
+  h3 { font-size: 1.15em; color: #aaa; margin-top: 24px; margin-bottom: 12px; }
+  table { border-collapse: collapse; width: 100%; margin-bottom: 16px; }
+  th, td { padding: 10px 14px; text-align: left; font-size: 0.95em; border-bottom: 1px solid #1a1a1a; }
+  th { color: #ffd700; font-size: 0.85em; text-transform: uppercase; letter-spacing: 1px; background: #111; }
+  tr:hover td { background: rgba(255,215,0,0.02); }
+  .status { display: inline-block; padding: 2px 10px; border-radius: 10px; font-size: 0.85em; white-space: nowrap; }
+  .s-done { background: #1a2e1a; color: #69db7c; }
+  .s-progress { background: #1a2a3a; color: #74c0fc; }
+  .s-delay { background: #3a2a1a; color: #ffd700; }
+  .s-todo { background: #1a1a1a; color: #666; border: 1px solid #333; }
+  .s-danger { background: #3a1a1a; color: #ff6b6b; }
+  .risk-section { background: linear-gradient(135deg, #1a1a1a, #141414); border: 1px solid #2a2a2a; border-radius: 12px; padding: 20px 24px; margin: 12px 0; }
+  .risk-section h3 { margin-top: 0; }
+  .risk-section li { margin-bottom: 8px; line-height: 1.6; color: #ddd; }
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin: 16px 0; }
+  .stat-card { background: #111; border: 1px solid #222; border-radius: 12px; padding: 20px; text-align: center; }
+  .stat-card .num { font-size: 2em; font-weight: bold; }
+  .stat-card .label { font-size: 0.85em; color: #888; margin-top: 4px; }
+  .green { color: #69db7c; }
+  .red { color: #ff6b6b; }
+  .yellow { color: #ffd700; }
+  .blue { color: #74c0fc; }
+  .dim { color: #666; }
+</style>
+</head>
+<body>
+<p class="breadcrumb"><a href="../">← Jacfitness</a></p>
+<h1>進度總覽</h1>
+<p class="sync-time">同步時間：2026-03-17（週二，週會前掃描）</p>
+
+<!-- 統計卡片 -->
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="num green">3</div>
+    <div class="label">v9.11 Bug 已驗證</div>
+  </div>
+  <div class="stat-card">
+    <div class="num red">12</div>
+    <div class="label">v9.11 Bug 未驗證</div>
+  </div>
+  <div class="stat-card">
+    <div class="num yellow">9</div>
+    <div class="label">JSG02OPT Bug 總數</div>
+  </div>
+  <div class="stat-card">
+    <div class="num blue">2</div>
+    <div class="label">進行中里程碑</div>
+  </div>
+</div>
+
+<h2>本週焦點（3/16 ~ 3/20）</h2>
+
+<h3>開發組</h3>
+<table>
+  <tr><th>任務</th><th>負責人</th><th>狀態</th><th>備註</th></tr>
+  <tr><td>籃球2P — Alpha 測試</td><td>小澤</td><td><span class="status s-progress">進行中</span></td><td>3/16~3/27</td></tr>
+  <tr><td>籃球2P — CP 階段</td><td>小曹</td><td><span class="status s-done">完成</span></td><td>3/9~3/13 正常結案</td></tr>
+</table>
+
+<h3>維護組</h3>
+<table>
+  <tr><th>任務</th><th>負責人</th><th>狀態</th><th>備註</th></tr>
+  <tr><td>9.9+9.10 整合</td><td>熊, Alan</td><td><span class="status s-done">已合併</span></td><td>3/17 確認完成</td></tr>
+  <tr><td>v2.0 beta 檢查</td><td>熊, Alan, 知瑩</td><td><span class="status s-progress">進行中</span></td><td>3/16~3/27</td></tr>
+  <tr><td>Google Play/App Store 截圖</td><td>小曹</td><td><span class="status s-delay">延期</span></td><td>優先處理雙拳企劃，等 beta 快結束再處理</td></tr>
+  <tr><td>文字描述</td><td>小曹</td><td><span class="status s-done">完成</span></td><td></td></tr>
+  <tr><td>開發者帳號</td><td>小曹</td><td><span class="status s-done">完成</span></td><td>Google Play / App Store 已存草稿</td></tr>
+  <tr><td>送審 app 文件</td><td>小曹</td><td><span class="status s-todo">尚未開始</span></td><td>3/16~4/3</td></tr>
+  <tr><td>icon 設計</td><td>亞哈</td><td><span class="status s-progress">進行中</span></td><td></td></tr>
+</table>
+
+<h2>v9.11 主管回饋（ISS-002~006）</h2>
+<table>
+  <tr><th>ISS</th><th>遊戲</th><th>問題</th><th>狀態</th></tr>
+  <tr><td>002</td><td>JSG08</td><td>力道條顯示時機</td><td><span class="status s-done">已驗證</span> Euny 3/17</td></tr>
+  <tr><td>003</td><td>JSG10</td><td>發球提示 DOTween 動畫</td><td><span class="status s-done">已驗證</span> Euny 3/17</td></tr>
+  <tr><td>004</td><td>JSG01</td><td>演算法判定異常</td><td><span class="status s-danger">根因確認</span> 雙拳演算法不分左右手</td></tr>
+  <tr><td>005</td><td>JSG09</td><td>冰壺多國文案修正</td><td><span class="status s-done">已驗證</span> Euny 3/17</td></tr>
+  <tr><td>006</td><td>JSG05</td><td>下曲球球路不明顯</td><td><span class="status s-progress">待驗證</span> 熊 3/16 已處理</td></tr>
+</table>
+
+<h2>風險與注意事項</h2>
+
+<div class="risk-section">
+  <h3 class="red">需立即處理</h3>
+  <ul>
+    <li><strong>FB 登入 Beta 失效</strong>（ISS-008）：之前審核通過的 FB 登入到 beta 版又不能用，尚未開始處理</li>
+    <li><strong>JSG01 演算法根因</strong>：雙拳演算法不分左右手 → 影響 v9.11 + v1.3 雙拳企劃</li>
+    <li><strong>v9.11 未驗證 12 筆</strong>：beta 已開始，需加速驗證</li>
+  </ul>
+</div>
+
+<div class="risk-section">
+  <h3 class="yellow">需關注</h3>
+  <ul>
+    <li><strong>上架 SOP 截圖延期</strong>：優先處理雙拳企劃，等 beta 快結束再處理</li>
+    <li><strong>後端資料庫</strong>（知瑩）：升級腳本完成，壓力測試未過</li>
+    <li><strong>雙拳演算法極限</strong>：雙拳同時出擊不可行，方案 A（一手攻一手防）可行性最高</li>
+  </ul>
+</div>
+
+<h2>人員工作量（3/16~3/20）</h2>
+<table>
+  <tr><th>人員</th><th>開發組</th><th>維護組</th><th>負載</th></tr>
+  <tr><td>小曹</td><td>雙拳企劃（3/20截止）</td><td>送審文件</td><td><span class="red">高</span></td></tr>
+  <tr><td>熊</td><td>—</td><td>beta 檢查、v9.11 bug</td><td><span class="yellow">中</span></td></tr>
+  <tr><td>Alan</td><td>—</td><td>beta 檢查、藍芽 UI</td><td><span class="yellow">中</span></td></tr>
+  <tr><td>知瑩</td><td>—</td><td>beta 檢查、後端 DB</td><td><span class="yellow">中</span></td></tr>
+  <tr><td>Jason</td><td>—</td><td>JSG02OPT bug</td><td><span class="dim">低</span></td></tr>
+  <tr><td>小澤</td><td>籃球2P Alpha</td><td>—</td><td><span class="blue">進行中</span></td></tr>
+  <tr><td>亞哈</td><td>—</td><td>icon、SKIP 素材</td><td><span class="dim">低</span></td></tr>
+  <tr><td>明皓</td><td>—</td><td>—</td><td><span class="dim">空</span></td></tr>
+  <tr><td>綠豆</td><td>—</td><td>—</td><td><span class="dim">空</span></td></tr>
+  <tr><td>兔子</td><td>—</td><td>—</td><td><span class="dim">低</span></td></tr>
+</table>
+
+<h2>關鍵日期</h2>
+<table>
+  <tr><th>日期</th><th>事件</th><th>狀態</th></tr>
+  <tr><td><s>3/13</s></td><td>9.9+9.10 整合</td><td><span class="status s-done">已合併</span></td></tr>
+  <tr><td><s>3/16</s></td><td>v2.0 beta 開始</td><td><span class="status s-done">已啟動</span></td></tr>
+  <tr><td>3/16~3/27</td><td>籃球2P Alpha / beta 檢查</td><td><span class="status s-progress">進行中</span></td></tr>
+  <tr><td>3/20</td><td>雙拳企劃截止</td><td><span class="status s-delay">本週</span></td></tr>
+  <tr><td>3/16~4/3</td><td>送審 app 文件</td><td><span class="status s-todo">尚未開始</span></td></tr>
+  <tr><td>3/30</td><td>v2.0 RC</td><td><span class="status s-todo">尚未開始</span></td></tr>
+  <tr><td>4/6</td><td>v2.0 內測 / v1.2 合入</td><td><span class="status s-todo">尚未開始</span></td></tr>
+  <tr><td>5/15</td><td>v2.1 正式上架</td><td><span class="status s-todo">尚未開始</span></td></tr>
+</table>
+
+<p style="margin-top: 48px; color: #333; font-size: 0.85em;">自動產生自 jacfitness-knowledge-base（私人）| 最後同步：2026-03-17</p>
+</body>
+</html>

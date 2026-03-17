@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JSG01 雙拳模式 — 方案討論</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Microsoft JhengHei', 'Noto Sans TC', sans-serif; background: #0a0a0a; color: #f0f0f0; overflow: hidden; }
+
+  .slide { display: none; width: 100vw; height: 100vh; padding: 60px 80px; flex-direction: column; justify-content: center; position: relative; }
+  .slide.active { display: flex; }
+  .slide::before { content: ''; position: absolute; top: -50%; right: -20%; width: 600px; height: 600px; background: radial-gradient(circle, rgba(255,215,0,0.03) 0%, transparent 70%); pointer-events: none; }
+  .slide::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(255,215,0,0.15), transparent); pointer-events: none; }
+
+  h1 { font-size: 3.5em; margin-bottom: 20px; color: #fff; letter-spacing: 4px; }
+  h2 { font-size: 2.2em; margin-bottom: 30px; color: #ffd700; letter-spacing: 2px; }
+  h3 { font-size: 1.4em; margin-bottom: 16px; color: #aaa; font-weight: normal; }
+  p, li { font-size: 1.3em; line-height: 1.8; color: #ddd; }
+  ul { padding-left: 30px; }
+  li { margin-bottom: 10px; }
+
+  .highlight { color: #ffd700; font-weight: bold; }
+  .red { color: #ff6b6b; }
+  .green { color: #69db7c; }
+  .blue { color: #74c0fc; }
+  .orange { color: #ff8c00; }
+  .dim { color: #666; }
+
+  .tag { display: inline-block; padding: 4px 16px; border-radius: 20px; font-size: 0.9em; margin-right: 8px; font-weight: bold; letter-spacing: 1px; }
+  .tag-a { background: #2d4a2d; color: #69db7c; border: 1px solid #3d6a3d; }
+  .tag-b { background: #4a3d2d; color: #ffd700; border: 1px solid #6a5d3d; }
+  .tag-c { background: #2d3a4a; color: #74c0fc; border: 1px solid #3d5a7a; }
+  .tag-d { background: #4a2d4a; color: #d6a0ff; border: 1px solid #6a3d6a; }
+
+  table { border-collapse: collapse; margin-top: 20px; width: 100%; }
+  th, td { padding: 14px 20px; text-align: left; font-size: 1.1em; border-bottom: 1px solid #222; }
+  th { color: #ffd700; font-size: 1.0em; text-transform: uppercase; letter-spacing: 1px; }
+  td { color: #ddd; }
+  tr:hover td { background: rgba(255,215,0,0.03); }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 20px; }
+  .col { background: linear-gradient(135deg, #1a1a1a, #141414); border-radius: 12px; padding: 30px; border: 1px solid #2a2a2a; }
+  .col h3 { color: #ffd700; font-size: 1.2em; margin-bottom: 12px; }
+
+  .formula { background: linear-gradient(135deg, #1a1a2a, #141428); border: 1px solid #2a2a4a; border-radius: 12px; padding: 24px 32px; margin: 20px 0; font-size: 1.4em; text-align: center; color: #74c0fc; font-family: monospace; }
+
+  .nav { position: fixed; bottom: 20px; right: 30px; color: #444; font-size: 0.9em; z-index: 100; }
+  .progress-bar { position: fixed; top: 0; left: 0; height: 3px; background: linear-gradient(90deg, #ffd700, #ff8c00); transition: width 0.3s; z-index: 100; }
+  .title-deco { position: absolute; top: 50%; right: 80px; transform: translateY(-50%); font-size: 12em; opacity: 0.04; font-weight: bold; letter-spacing: -8px; pointer-events: none; }
+
+  /* ===== 方案 A：左右出拳 ===== */
+  .punch-demo { display: flex; gap: 60px; margin-top: 20px; justify-content: center; align-items: flex-start; }
+  .punch-scene { text-align: center; width: 340px; }
+  .punch-scene h4 { font-size: 1.1em; color: #888; margin-bottom: 16px; letter-spacing: 1px; }
+  .punch-arena { position: relative; height: 200px; background: linear-gradient(135deg, #1a1a1a, #111); border-radius: 16px; border: 1px solid #2a2a2a; overflow: hidden; }
+  .boss-icon { font-size: 3em; position: absolute; right: 40px; top: 50%; transform: translateY(-50%); }
+  .fist { position: absolute; opacity: 0; font-size: 1.4em; font-weight: bold; padding: 6px 14px; border-radius: 10px; }
+  .fist-left { left: 40px; top: 28%; background: #74c0fc; color: #0a0a0a; box-shadow: 0 0 16px rgba(116,192,252,0.7), 0 0 4px rgba(116,192,252,0.9); }
+  .fist-right { left: 40px; top: 55%; background: #ff8c00; color: #0a0a0a; box-shadow: 0 0 16px rgba(255,140,0,0.7), 0 0 4px rgba(255,140,0,0.9); }
+  .fist-single { left: 40px; top: 42%; background: #ff8c00; color: #0a0a0a; box-shadow: 0 0 16px rgba(255,140,0,0.7), 0 0 4px rgba(255,140,0,0.9); }
+
+  @keyframes punchR { 0% { opacity:1; transform: translateX(0) scale(1); } 35% { opacity:1; transform: translateX(120px) scale(1.3); } 55% { opacity:1; transform: translateX(120px) scale(1.3); } 100% { opacity:0; transform: translateX(100px) scale(0.7); } }
+  @keyframes punchL { 0% { opacity:1; transform: translateX(0) scaleX(-1) scale(1); } 35% { opacity:1; transform: translateX(120px) scaleX(-1) scale(1.3); } 55% { opacity:1; transform: translateX(120px) scaleX(-1) scale(1.3); } 100% { opacity:0; transform: translateX(100px) scaleX(-1) scale(0.7); } }
+
+  .dual .fist-left { animation: punchL 0.6s ease-out infinite; }
+  .dual .fist-right { animation: punchR 0.6s ease-out 0.3s infinite; }
+  .single .fist-single { animation: punchR 0.8s ease-out infinite; }
+
+  .hit-fx { position: absolute; right: 80px; top: 50%; transform: translateY(-50%); font-size: 1.6em; opacity: 0; }
+  .dual .hit-fx { animation: hitFlash 0.6s ease-out 0.2s infinite; }
+  .single .hit-fx { animation: hitFlash 0.8s ease-out 0.2s infinite; }
+  @keyframes hitFlash { 0% { opacity:0; transform: translateY(-50%) scale(0.5); } 25% { opacity:1; transform: translateY(-50%) scale(1.5); } 100% { opacity:0; transform: translateY(-50%) scale(0.7); } }
+
+  .combo-counter { position: absolute; top: 12px; left: 16px; font-size: 1.4em; font-weight: bold; font-family: monospace; }
+  .dual .combo-counter { color: #ffd700; }
+  .single .combo-counter { color: #888; }
+
+  /* 方案 A 顏色圖示 */
+  .color-legend { display: flex; gap: 20px; justify-content: center; margin-bottom: 16px; font-size: 1em; }
+  .color-legend span { display: flex; align-items: center; gap: 6px; }
+  .color-dot { width: 14px; height: 14px; border-radius: 50%; display: inline-block; }
+  .color-dot.left-color { background: #74c0fc; box-shadow: 0 0 6px rgba(116,192,252,0.5); }
+  .color-dot.right-color { background: #ff8c00; box-shadow: 0 0 6px rgba(255,140,0,0.5); }
+
+  /* ===== 方案 C：拳譜 ===== */
+  .recipe-demo { margin-top: 16px; }
+  .recipe-track { display: flex; gap: 8px; align-items: center; margin: 12px 0; padding: 14px 18px; background: linear-gradient(135deg, #1a1a1a, #111); border-radius: 12px; border: 1px solid #2a2a2a; overflow: hidden; flex-wrap: wrap; }
+  .recipe-punch { padding: 8px 14px; border-radius: 8px; font-size: 1em; background: #2a2a2a; border: 1px solid #3a3a3a; transition: all 0.3s; white-space: nowrap; }
+  .recipe-punch.left-fist { color: #74c0fc; border-color: #3d5a7a; }
+  .recipe-punch.right-fist { color: #ff8c00; border-color: #6a4a2a; }
+  .recipe-punch.disabled { opacity: 0.2; border-style: dashed; text-decoration: line-through; }
+  .recipe-punch.hit { transform: scale(1.05); }
+  .recipe-punch.hit.left-fist { background: #1a2a3a; border-color: #74c0fc; box-shadow: 0 0 12px rgba(116,192,252,0.4); }
+  .recipe-punch.hit.right-fist { background: #3a2a1a; border-color: #ff8c00; box-shadow: 0 0 12px rgba(255,140,0,0.4); }
+  .recipe-punch.miss { background: #4a2d2d; border-color: #ff6b6b; color: #ff6b6b; opacity: 0.4; }
+  .recipe-arrow { color: #444; font-size: 1em; }
+  .recipe-timer { height: 4px; background: #222; border-radius: 2px; margin-top: 6px; overflow: hidden; display: flex; justify-content: center; }
+  .recipe-timer-bar { height: 100%; border-radius: 2px; transition: width 0.05s linear; }
+  .recipe-timer-bar.active { background: linear-gradient(90deg, #74c0fc, #ffd700, #ff8c00); }
+  .recipe-result { font-size: 1.3em; font-weight: bold; margin-top: 10px; text-align: center; min-height: 36px; }
+  .recipe-label { font-size: 0.9em; color: #888; margin-bottom: 4px; }
+
+  /* ===== 方案 C 遊戲畫面 ===== */
+  .game-screen { position: relative; width: 100%; height: 240px; background: linear-gradient(180deg, #0d1117 0%, #161b22 50%, #1a1f26 100%); border-radius: 16px; border: 1px solid #2a2a2a; margin-top: 12px; overflow: hidden; }
+  .gs-boss { position: absolute; right: 60px; top: 45%; transform: translateY(-50%); font-size: 3.5em; transition: transform 0.1s; }
+  .gs-boss.shake { animation: bossShake 0.15s ease-out; }
+  @keyframes bossShake { 0% { transform: translateY(-50%) translateX(0); } 25% { transform: translateY(-50%) translateX(8px); } 50% { transform: translateY(-50%) translateX(-6px); } 75% { transform: translateY(-50%) translateX(4px); } 100% { transform: translateY(-50%) translateX(0); } }
+
+  .gs-player-dual { position: absolute; left: 40px; top: 35%; }
+  .gs-player-single { position: absolute; left: 50px; top: 42%; }
+  .gs-glove { font-size: 1.1em; display: block; opacity: 0; position: relative; font-weight: bold; padding: 4px 10px; border-radius: 8px; width: fit-content; }
+  .gs-glove-left { background: #74c0fc; color: #0a0a0a; box-shadow: 0 0 14px rgba(116,192,252,0.7); }
+  .gs-glove-right { background: #ff8c00; color: #0a0a0a; box-shadow: 0 0 14px rgba(255,140,0,0.7); margin-top: 6px; }
+  .gs-glove-only { background: #ff8c00; color: #0a0a0a; box-shadow: 0 0 14px rgba(255,140,0,0.7); font-size: 1.2em; padding: 5px 12px; border-radius: 8px; }
+
+  @keyframes gsPunchL { 0% { opacity:1; transform: translateX(0) scaleX(-1); } 30% { opacity:1; transform: translateX(100px) scaleX(-1) scale(1.3); } 50% { opacity:1; transform: translateX(100px) scaleX(-1) scale(1.3); } 100% { opacity:0; transform: translateX(80px) scaleX(-1) scale(0.7); } }
+  @keyframes gsPunchR { 0% { opacity:1; transform: translateX(0); } 30% { opacity:1; transform: translateX(100px) scale(1.3); } 50% { opacity:1; transform: translateX(100px) scale(1.3); } 100% { opacity:0; transform: translateX(80px) scale(0.7); } }
+  @keyframes gsPunchSingle { 0% { opacity:1; transform: translateX(0); } 30% { opacity:1; transform: translateX(100px) scale(1.3); } 50% { opacity:1; transform: translateX(100px) scale(1.3); } 100% { opacity:0; transform: translateX(80px) scale(0.7); } }
+
+  .gs-hp-bar { position: absolute; top: 14px; right: 16px; width: 180px; height: 10px; background: #222; border-radius: 5px; overflow: hidden; }
+  .gs-hp-fill { height: 100%; background: linear-gradient(90deg, #ff6b6b, #ff4444); border-radius: 5px; transition: width 0.3s; }
+  .gs-hp-label { position: absolute; top: 12px; right: 200px; font-size: 0.75em; color: #666; }
+  .gs-combo { position: absolute; top: 14px; left: 16px; font-size: 1.2em; font-weight: bold; font-family: monospace; }
+  .gs-hit-fx { position: absolute; font-size: 2em; opacity: 0; pointer-events: none; right: 90px; top: 35%; }
+  @keyframes hitBurst { 0% { opacity:0; transform: scale(0.3); } 25% { opacity:1; transform: scale(1.5); } 100% { opacity:0; transform: scale(0.6); } }
+  .gs-dmg { position: absolute; font-size: 1.5em; font-weight: bold; opacity: 0; pointer-events: none; right: 70px; top: 18%; }
+  @keyframes dmgPop { 0% { opacity:0; transform: translateY(0) scale(0.5); } 20% { opacity:1; transform: translateY(-8px) scale(1.3); } 100% { opacity:0; transform: translateY(-35px) scale(0.8); } }
+  .gs-timer { position: absolute; bottom: 48px; left: 50%; transform: translateX(-50%); width: 260px; height: 3px; background: #222; border-radius: 2px; display: flex; justify-content: center; }
+  .gs-timer-bar { height: 100%; background: linear-gradient(90deg, #74c0fc, #ffd700, #ff8c00); border-radius: 2px; }
+
+  .gs-recipe-ui { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); display: flex; gap: 4px; align-items: center; background: rgba(0,0,0,0.7); padding: 6px 12px; border-radius: 8px; border: 1px solid #333; }
+  .gs-punch { padding: 3px 8px; border-radius: 5px; font-size: 0.75em; white-space: nowrap; transition: all 0.2s; }
+  .gs-punch.gs-left { background: rgba(116,192,252,0.12); color: #74c0fc; border: 1px solid #3d5a7a; }
+  .gs-punch.gs-right { background: rgba(255,140,0,0.12); color: #ff8c00; border: 1px solid #6a4a2a; }
+  .gs-punch.gs-active { box-shadow: 0 0 14px rgba(255,215,0,0.6); border-color: #ffd700 !important; transform: scale(1.15); }
+  .gs-punch.gs-done { opacity: 0.25; transform: scale(0.9); }
+  .gs-punch.gs-disabled { opacity: 0.15; border-style: dashed; text-decoration: line-through; }
+  .gs-arrow { color: #333; font-size: 0.7em; }
+
+  /* ===== 方案 D：QTE 縮圈 ===== */
+  .qte-demo { display: flex; gap: 40px; justify-content: center; margin-top: 20px; align-items: flex-start; }
+  .qte-scene { text-align: center; width: 280px; }
+  .qte-scene h4 { font-size: 1.1em; color: #888; margin-bottom: 16px; letter-spacing: 1px; }
+  .qte-ring-container { position: relative; width: 160px; height: 160px; margin: 0 auto; }
+  .qte-ring-outer { position: absolute; inset: 0; border-radius: 50%; border: 3px solid #333; }
+  .qte-ring-shrink { position: absolute; inset: 0; border-radius: 50%; border: 3px solid #ffd700; transform: scale(2); opacity: 0; }
+  .qte-ring-target { position: absolute; inset: 20px; border-radius: 50%; border: 2px dashed #444; }
+  .qte-ring-center { position: absolute; inset: 50px; border-radius: 50%; background: rgba(255,215,0,0.08); display: flex; align-items: center; justify-content: center; font-size: 1.8em; }
+  /* 擊中閃光 */
+  .qte-hit-flash { position: absolute; inset: -10px; border-radius: 50%; opacity: 0; pointer-events: none; }
+  @keyframes qteHitGlow { 0% { opacity:0; box-shadow: 0 0 0 rgba(105,219,124,0); } 20% { opacity:1; box-shadow: 0 0 40px rgba(105,219,124,0.8), inset 0 0 30px rgba(105,219,124,0.3); } 100% { opacity:0; box-shadow: 0 0 0 rgba(105,219,124,0); } }
+  .qte-hit-text { position: absolute; top: -20px; left: 50%; transform: translateX(-50%); font-size: 1.1em; font-weight: bold; color: #69db7c; opacity: 0; pointer-events: none; }
+  @keyframes qteHitText { 0% { opacity:0; transform: translateX(-50%) translateY(0) scale(0.5); } 20% { opacity:1; transform: translateX(-50%) translateY(-10px) scale(1.2); } 100% { opacity:0; transform: translateX(-50%) translateY(-30px) scale(0.8); } }
+
+  .qte-timeline { margin-top: 20px; }
+  .qte-timeline-track { position: relative; height: 60px; background: linear-gradient(135deg, #1a1a1a, #111); border-radius: 12px; border: 1px solid #2a2a2a; overflow: hidden; }
+  .qte-beat { position: absolute; width: 3px; height: 40px; border-radius: 2px; top: 10px; }
+  .qte-beat-window { position: absolute; height: 40px; top: 10px; border-radius: 4px; opacity: 0.15; }
+  .qte-beat.blue { background: #74c0fc; }
+  .qte-beat.orange { background: #ff8c00; }
+  .qte-scanline { position: absolute; width: 2px; height: 100%; background: #fff; opacity: 0.8; top: 0; box-shadow: 0 0 10px #fff; }
+  .qte-timeline-label { display: flex; justify-content: space-between; margin-top: 6px; font-size: 0.9em; color: #666; }
+  /* 掃描線命中脈衝 */
+  .qte-pulse { position: absolute; width: 20px; height: 40px; top: 10px; border-radius: 4px; opacity: 0; pointer-events: none; }
+  @keyframes qtePulse { 0% { opacity: 0.8; transform: scaleX(1); } 100% { opacity: 0; transform: scaleX(3); } }
+
+  /* Fever 擾動背景 */
+  @keyframes feverGradient { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+
+  /* 淡入動畫 */
+  .slide.active li, .slide.active .col, .slide.active table tr,
+  .slide.active .punch-scene, .slide.active .qte-scene { animation: fadeUp 0.4s ease-out both; }
+  .slide.active li:nth-child(1), .slide.active tr:nth-child(1) { animation-delay: 0s; }
+  .slide.active li:nth-child(2), .slide.active tr:nth-child(2) { animation-delay: 0.06s; }
+  .slide.active li:nth-child(3), .slide.active tr:nth-child(3) { animation-delay: 0.12s; }
+  .slide.active li:nth-child(4), .slide.active tr:nth-child(4) { animation-delay: 0.18s; }
+  .slide.active li:nth-child(5), .slide.active tr:nth-child(5) { animation-delay: 0.24s; }
+  .slide.active .col:nth-child(2) { animation-delay: 0.08s; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+
+<!-- Slide 1: Title -->
+<div class="slide active">
+  <div class="title-deco">拳</div>
+  <h3 style="letter-spacing: 4px; text-transform: uppercase;">JSG01 Boxing</h3>
+  <h1>雙拳模式</h1>
+  <h2 style="font-weight: normal; letter-spacing: 4px;">方案討論</h2>
+  <p class="dim" style="margin-top: 60px; letter-spacing: 2px;">2026-03-16</p>
+</div>
+
+<!-- Slide 2: 定位 -->
+<div class="slide">
+  <h2>產品定位</h2>
+  <ul>
+    <li>雙拳 = 拳擊的<span class="highlight">雙手版本</span>，左右手各持一台裝置</li>
+    <li>硬體：<span class="blue">JMATE2</span> + <span class="orange">Jmotion</span>（天然分左右）</li>
+    <li><span class="highlight">歧視鏈策略</span>：雙手 = 完整體驗，單手 = 體驗不完整</li>
+    <li>目的：驅動 Jmotion 新裝置銷售</li>
+  </ul>
+</div>
+
+<!-- Slide 3: 設計原則 -->
+<div class="slide">
+  <h2>設計原則</h2>
+  <ul>
+    <li>TA 大多數是<span class="highlight">小朋友</span></li>
+    <li>機制<span class="red">不能太複雜</span></li>
+    <li>視覺刺激要有<span class="highlight">層次感</span></li>
+    <li>單手不是「打不過」，是「後期關卡<span class="red">比較吃力</span>」</li>
+  </ul>
+</div>
+
+<!-- Slide 4: 現況 -->
+<div class="slide">
+  <h2>現有機制</h2>
+  <table>
+    <tr><th>系統</th><th>現有做法</th></tr>
+    <tr><td>自由揮拳</td><td>直拳 / 上鉤拳 / 右鉤拳，<span class="highlight">無冷卻</span>，揮就算一拳</td></tr>
+    <tr><td>弱點</td><td>認拳種，每揮一拳更換弱點顯示，打中弱點 = 傷害加成</td></tr>
+    <tr><td>防禦 QTE</td><td>Boss 固定秒數攻擊，縮圈 QTE（正防 / 側防）</td></tr>
+    <tr><td>Fever</td><td>攻擊累積 Fever 條 → 滿了進入連擊模式（專屬場景 + 背景）→ <span class="highlight">出越多拳越痛</span>，固定秒數結束，Boss 攻擊順延</td></tr>
+  </table>
+</div>
+
+<!-- Slide 5: 方案總覽 -->
+<div class="slide">
+  <h2>方案總覽</h2>
+  <h3>各方案改動不同系統，可獨立選擇也可自由組合</h3>
+  <table>
+    <tr><th>方案</th><th>改動系統</th><th>核心概念</th><th>開發量</th></tr>
+    <tr><td><span class="tag tag-a">A</span></td><td>自由揮拳</td><td>動畫分左右 + 後期數值拉高 + 一手攻一手防</td><td class="green">小</td></tr>
+    <tr><td><span class="tag tag-b">B</span></td><td>弱點 + 防禦</td><td>弱點認方向 + Boss 攻擊分左右</td><td class="highlight">中</td></tr>
+    <tr><td><span class="tag tag-c">C</span></td><td>Fever</td><td>連擊改成拳譜限時打完</td><td class="highlight">中～大</td></tr>
+    <tr><td><span class="tag tag-d">D</span></td><td>弱點</td><td>弱點加上 QTE 時機窗口</td><td class="green">小～中</td></tr>
+  </table>
+  <p style="margin-top: 20px; color: #666; font-size: 1.1em;">視覺特效為所有方案選配</p>
+</div>
+
+<!-- Slide 6: 方案 A -->
+<div class="slide">
+  <h2><span class="tag tag-a">A</span> 動畫分左右 + 數值歧視鏈</h2>
+  <h3>改動：自由揮拳 — 開發量小</h3>
+  <div class="color-legend">
+    <span><span class="color-dot left-color"></span> 左拳（JMATE2）</span>
+    <span><span class="color-dot right-color"></span> 右拳（Jmotion）</span>
+  </div>
+  <div class="punch-demo">
+    <div class="punch-scene">
+      <h4>雙手模式</h4>
+      <div class="punch-arena dual">
+        <div class="combo-counter" id="dualCombo">0 Hit</div>
+        <div class="fist fist-left">左 ✊</div>
+        <div class="fist fist-right">右 👊</div>
+        <div class="hit-fx">💥</div>
+        <div class="boss-icon">👹</div>
+      </div>
+      <p style="margin-top: 10px; font-size: 0.95em;"><span class="blue">藍</span>+<span class="orange">橘</span> 交替 — 可<span class="highlight">邊打邊防</span></p>
+    </div>
+    <div class="punch-scene">
+      <h4>單手模式</h4>
+      <div class="punch-arena single">
+        <div class="combo-counter" id="singleCombo">0 Hit</div>
+        <div class="fist fist-single">右 👊</div>
+        <div class="hit-fx">💥</div>
+        <div class="boss-icon">👹</div>
+      </div>
+      <p style="margin-top: 10px; font-size: 0.95em; color: #888;">攻擊防禦<span class="red">只能輪流</span></p>
+    </div>
+  </div>
+  <ul style="margin-top: 12px; font-size: 1.05em;">
+    <li>後期 Boss <span class="highlight">血量拉高、攻擊力拉高</span></li>
+    <li>雙手：一手攻一手防，DPS 不中斷 → 打得過</li>
+    <li>單手：要停下來防禦 → 後期<span class="red">明顯吃力</span></li>
+  </ul>
+</div>
+
+<!-- Slide 7: 方案 B -->
+<div class="slide">
+  <h2><span class="tag tag-b">B</span> 攻防分左右</h2>
+  <h3>方案 A 基礎上，弱點和防禦認方向</h3>
+  <ul>
+    <li>弱點改為認方向：例如「<span class="orange">右上鉤拳</span>」才是弱點</li>
+    <li>Boss 攻擊分左右 → 用<span class="blue">對應的手</span>防禦</li>
+    <li>單手劣勢明確：弱點只碰<span class="red">一半</span>、防禦只擋<span class="red">一邊</span></li>
+    <li>硬體天然分左右，開發量跟 A <span class="green">差距不大</span></li>
+  </ul>
+  <div class="two-col" style="margin-top: 20px;">
+    <div class="col"><h3>優點</h3><p>歧視鏈最完整，有機制支撐</p></div>
+    <div class="col"><h3>風險</h3><p>弱點系統 + QTE 防禦邏輯都要改</p></div>
+  </div>
+</div>
+
+<!-- Slide 8: 方案 C 拳譜 UI -->
+<div class="slide" id="slideRecipe">
+  <h2><span class="tag tag-c">C</span> 組合拳譜</h2>
+  <h3>改動：取代 Fever 連擊 — 需確認演算法可行性</h3>
+  <div class="recipe-demo">
+    <div class="recipe-label"><span class="blue">藍 = 左拳</span> ｜ <span class="orange">橘 = 右拳</span></div>
+    <div class="recipe-label">雙手拳譜（8 拳全可打）</div>
+    <div class="recipe-track" id="recipeDual">
+      <span class="recipe-punch left-fist" data-hand="L">🤛 左直</span><span class="recipe-arrow">→</span>
+      <span class="recipe-punch right-fist" data-hand="R">👊 右鉤</span><span class="recipe-arrow">→</span>
+      <span class="recipe-punch left-fist" data-hand="L">🤛 左上鉤</span><span class="recipe-arrow">→</span>
+      <span class="recipe-punch right-fist" data-hand="R">👊 右直</span><span class="recipe-arrow">→</span>
+      <span class="recipe-punch left-fist" data-hand="L">🤛 左鉤</span><span class="recipe-arrow">→</span>
+      <span class="recipe-punch right-fist" data-hand="R">👊 右上鉤</span><span class="recipe-arrow">→</span>
+      <span class="recipe-punch left-fist" data-hand="L">🤛 左直</span><span class="recipe-arrow">→</span>
+      <span class="recipe-punch right-fist" data-hand="R">👊 右鉤</span>
+    </div>
+    <div class="recipe-timer"><div class="recipe-timer-bar active" id="recipeTimerDual" style="width:100%"></div></div>
+    <div class="recipe-result" id="recipeResultDual"></div>
+
+    <div class="recipe-label" style="margin-top: 12px;">單手拳譜（同樣 8 拳，左拳打不出來）</div>
+    <div class="recipe-track" id="recipeSingle">
+      <span class="recipe-punch left-fist disabled" data-hand="L">🤛 左直</span><span class="recipe-arrow">→</span>
+      <span class="recipe-punch right-fist" data-hand="R">👊 右鉤</span><span class="recipe-arrow">→</span>
+      <span class="recipe-punch left-fist disabled" data-hand="L">🤛 左上鉤</span><span class="recipe-arrow">→</span>
+      <span class="recipe-punch right-fist" data-hand="R">👊 右直</span><span class="recipe-arrow">→</span>
+      <span class="recipe-punch left-fist disabled" data-hand="L">🤛 左鉤</span><span class="recipe-arrow">→</span>
+      <span class="recipe-punch right-fist" data-hand="R">👊 右上鉤</span><span class="recipe-arrow">→</span>
+      <span class="recipe-punch left-fist disabled" data-hand="L">🤛 左直</span><span class="recipe-arrow">→</span>
+      <span class="recipe-punch right-fist" data-hand="R">👊 右鉤</span>
+    </div>
+    <div class="recipe-timer"><div class="recipe-timer-bar active" id="recipeTimerSingle" style="width:100%"></div></div>
+    <div class="recipe-result" id="recipeResultSingle"></div>
+  </div>
+  <div class="formula">Fever 條滿 → 跳出拳譜 → 限時打完 ｜ 8/8 = 100% ｜ 4/8 = 50%</div>
+</div>
+
+<!-- Slide 9: 方案 C 遊戲畫面示意 -->
+<div class="slide" id="slideRecipeGame">
+  <h2><span class="tag tag-c">C</span> 遊戲畫面示意</h2>
+  <div style="display: flex; gap: 24px;">
+    <!-- 雙手畫面 -->
+    <div style="flex:1;">
+      <h3 style="text-align:center;">雙手模式</h3>
+      <div class="game-screen" id="gsDual">
+        <div id="gsDualFeverBg" style="position:absolute; inset:0; opacity:0; transition: opacity 0.5s; z-index:0; border-radius:16px; overflow:hidden;">
+          <div style="position:absolute; inset:-20px; background: linear-gradient(135deg, #ff4500, #ff8c00, #ffd700, #ff4500, #ff8c00); background-size: 400% 400%; animation: feverGradient 2s ease infinite;"></div>
+          <div style="position:absolute; inset:0; background: rgba(0,0,0,0.7);"></div>
+        </div>
+        <div id="gsDualFeverBar" style="position:absolute; bottom:48px; left:50%; transform:translateX(-50%); width:260px; height:6px; background:#222; border-radius:3px; z-index:5;">
+          <div id="gsDualFeverFill" style="height:100%; width:0%; background: linear-gradient(90deg, #ff8c00, #ffd700); border-radius:3px; transition: width 0.1s;"></div>
+        </div>
+        <div id="gsDualFeverLabel" style="position:absolute; bottom:56px; left:50%; transform:translateX(-50%); font-size:0.7em; color:#666; z-index:5;">FEVER</div>
+        <div id="gsDualFeverText" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:2em; font-weight:bold; color:#ffd700; opacity:0; z-index:12; text-shadow: 0 0 20px rgba(255,215,0,0.8); letter-spacing:6px;">FEVER!</div>
+        <div class="gs-combo" id="gsDualCombo" style="color:#ffd700; z-index:5;">0 Hit</div>
+        <div class="gs-hp-label" style="z-index:5;">BOSS HP</div>
+        <div class="gs-hp-bar" style="z-index:5;"><div class="gs-hp-fill" id="gsDualHp" style="width:85%"></div></div>
+        <div class="gs-player-dual" style="z-index:5;">
+          <span class="gs-glove gs-glove-left" id="gsDualGloveL">左 ✊</span>
+          <span class="gs-glove gs-glove-right" id="gsDualGloveR">右 👊</span>
+        </div>
+        <div class="gs-boss" id="gsDualBoss" style="z-index:5;">👹</div>
+        <div class="gs-hit-fx" id="gsDualHitFx" style="z-index:6;">💥</div>
+        <div class="gs-dmg" id="gsDualDmg" style="color:#ffd700; z-index:6;">-960</div>
+        <div class="gs-timer" style="z-index:5;"><div class="gs-timer-bar" id="gsDualTimerBar" style="width:0%;"></div></div>
+        <div class="gs-recipe-ui" id="gsDualRecipeUI" style="z-index:5;"></div>
+      </div>
+      <p style="text-align:center; margin-top:8px; font-size:0.95em; color:#69db7c;">全拳譜可打 → 100% 傷害</p>
+    </div>
+    <!-- 單手畫面 -->
+    <div style="flex:1;">
+      <h3 style="text-align:center;">單手模式</h3>
+      <div class="game-screen" id="gsSingle">
+        <div id="gsSingleFeverBg" style="position:absolute; inset:0; opacity:0; transition: opacity 0.5s; z-index:0; border-radius:16px; overflow:hidden;">
+          <div style="position:absolute; inset:-20px; background: linear-gradient(135deg, #ff4500, #ff8c00, #ffd700, #ff4500, #ff8c00); background-size: 400% 400%; animation: feverGradient 2s ease infinite;"></div>
+          <div style="position:absolute; inset:0; background: rgba(0,0,0,0.7);"></div>
+        </div>
+        <div id="gsSingleFeverBar" style="position:absolute; bottom:48px; left:50%; transform:translateX(-50%); width:260px; height:6px; background:#222; border-radius:3px; z-index:5;">
+          <div id="gsSingleFeverFill" style="height:100%; width:0%; background: linear-gradient(90deg, #ff8c00, #ffd700); border-radius:3px; transition: width 0.1s;"></div>
+        </div>
+        <div id="gsSingleFeverLabel" style="position:absolute; bottom:56px; left:50%; transform:translateX(-50%); font-size:0.7em; color:#666; z-index:5;">FEVER</div>
+        <div id="gsSingleFeverText" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:2em; font-weight:bold; color:#ffd700; opacity:0; z-index:12; text-shadow: 0 0 20px rgba(255,215,0,0.8); letter-spacing:6px;">FEVER!</div>
+        <div class="gs-combo" id="gsSingleCombo" style="color:#888; z-index:5;">0 Hit</div>
+        <div class="gs-hp-label" style="z-index:5;">BOSS HP</div>
+        <div class="gs-hp-bar" style="z-index:5;"><div class="gs-hp-fill" id="gsSingleHp" style="width:95%"></div></div>
+        <div class="gs-player-single" style="z-index:5;">
+          <span class="gs-glove gs-glove-only" id="gsSingleGlove">右 👊</span>
+        </div>
+        <div class="gs-boss" id="gsSingleBoss" style="z-index:5;">👹</div>
+        <div class="gs-hit-fx" id="gsSingleHitFx" style="z-index:6;">💥</div>
+        <div class="gs-dmg" id="gsSingleDmg" style="color:#888; z-index:6;">-640</div>
+        <div class="gs-timer" style="z-index:5;"><div class="gs-timer-bar" id="gsSingleTimerBar" style="width:0%;"></div></div>
+        <div class="gs-recipe-ui" id="gsSingleRecipeUI" style="z-index:5;"></div>
+      </div>
+      <p style="text-align:center; margin-top:8px; font-size:0.95em; color:#ff6b6b;">左拳打不出 → 最多 50% 傷害</p>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 10: 方案 D 機制 -->
+<div class="slide" id="slideQTE">
+  <h2><span class="tag tag-d">D</span> 節奏 QTE</h2>
+  <h3>改動：取代弱點系統 — 弱點加上時機窗口</h3>
+  <div class="qte-demo">
+    <div class="qte-scene">
+      <h4>QTE 縮圈示意</h4>
+      <div class="qte-ring-container" id="qteRingBox">
+        <div class="qte-ring-outer"></div>
+        <div class="qte-ring-shrink" id="qteRingShrink"></div>
+        <div class="qte-ring-target"></div>
+        <div class="qte-ring-center" id="qteRingIcon">👊</div>
+        <div class="qte-hit-flash" id="qteHitFlash"></div>
+        <div class="qte-hit-text" id="qteHitText">PERFECT!</div>
+      </div>
+      <p style="margin-top: 12px; font-size: 0.95em; color: #888;">圈縮到範圍內揮拳 = 命中</p>
+    </div>
+    <div class="qte-scene" style="width: 500px;">
+      <h4>雙手節奏時間軸</h4>
+      <div class="qte-timeline">
+        <div class="qte-timeline-track" id="qteTrack">
+          <div class="qte-scanline" id="qteScanline" style="left: 0;"></div>
+        </div>
+        <div class="qte-timeline-label">
+          <span>0s</span><span>1s</span><span>2s</span><span>3s</span><span>4s</span><span>5s</span>
+        </div>
+      </div>
+      <p style="margin-top: 12px; font-size: 0.95em;"><span class="blue">藍</span>=左拳 <span class="orange">橘</span>=右拳 — 雙手節奏點更密集</p>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 10b: 方案 D 遊戲畫面 -->
+<div class="slide" id="slideQTEGame">
+  <h2><span class="tag tag-d">D</span> 遊戲畫面示意</h2>
+  <div style="display: flex; gap: 24px;">
+    <!-- A+D -->
+    <div style="flex:1;">
+      <h3 style="text-align:center;"><span class="tag tag-a" style="font-size:0.7em;">A</span>+<span class="tag tag-d" style="font-size:0.7em;">D</span> 自由揮拳 + QTE 弱點</h3>
+      <div class="game-screen" id="gsAD">
+        <div class="gs-combo" id="gsADCombo" style="color:#ffd700;">0 Hit</div>
+        <div class="gs-hp-label">BOSS HP</div>
+        <div class="gs-hp-bar"><div class="gs-hp-fill" id="gsADHp" style="width:85%"></div></div>
+        <div class="gs-player-dual">
+          <span class="gs-glove gs-glove-left" id="gsADGloveL">左 ✊</span>
+          <span class="gs-glove gs-glove-right" id="gsADGloveR">右 👊</span>
+        </div>
+        <div class="gs-boss" id="gsADBoss">👹</div>
+        <div class="gs-hit-fx" id="gsADHitFx">💥</div>
+        <div class="gs-dmg" id="gsADDmg" style="color:#ffd700;">-960</div>
+        <!-- QTE 縮圈 overlay -->
+        <div id="gsADRing" style="position:absolute; right:35px; top:50%; transform:translateY(-50%); width:110px; height:110px; opacity:0; z-index:10;">
+          <div style="position:absolute; inset:0; border-radius:50%; border:3px solid #555;"></div>
+          <div id="gsADRingShrink" style="position:absolute; inset:0; border-radius:50%; border:3px solid #ffd700; transform:scale(2); opacity:0;"></div>
+          <div style="position:absolute; inset:16px; border-radius:50%; border:2px dashed #666;"></div>
+          <div style="position:absolute; inset:30px; border-radius:50%; background:rgba(255,215,0,0.15); display:flex; align-items:center; justify-content:center; font-size:1.6em;">👊</div>
+        </div>
+        <div id="gsADPerfect" style="position:absolute; right:45px; top:12%; font-size:1.1em; font-weight:bold; color:#69db7c; opacity:0; z-index:11; text-shadow: 0 0 10px rgba(105,219,124,0.8);">PERFECT!</div>
+      </div>
+      <p style="text-align:center; margin-top:6px; font-size:0.85em; color:#888;">弱點出現 QTE 縮圈，抓對時機 = 高傷</p>
+    </div>
+    <!-- C+D: 兩階段 -->
+    <div style="flex:1;">
+      <h3 style="text-align:center;"><span class="tag tag-c" style="font-size:0.7em;">C</span>+<span class="tag tag-d" style="font-size:0.7em;">D</span> 自由揮拳(D) → Fever 拳譜(C)</h3>
+      <div class="game-screen" id="gsCD">
+        <!-- Fever 擾動背景 -->
+        <div id="gsCDFeverBg" style="position:absolute; inset:0; opacity:0; transition: opacity 0.5s; z-index:0; border-radius:16px; overflow:hidden;">
+          <div style="position:absolute; inset:-20px; background: linear-gradient(135deg, #ff4500, #ff8c00, #ffd700, #ff4500, #ff8c00); background-size: 400% 400%; animation: feverGradient 2s ease infinite;"></div>
+          <div style="position:absolute; inset:0; background: rgba(0,0,0,0.7);"></div>
+        </div>
+        <!-- Fever 條 -->
+        <div id="gsCDFeverBar" style="position:absolute; bottom:48px; left:50%; transform:translateX(-50%); width:260px; height:6px; background:#222; border-radius:3px; z-index:5;">
+          <div id="gsCDFeverFill" style="height:100%; width:0%; background: linear-gradient(90deg, #ff8c00, #ffd700); border-radius:3px; transition: width 0.1s;"></div>
+        </div>
+        <div id="gsCDFeverLabel" style="position:absolute; bottom:56px; left:50%; transform:translateX(-50%); font-size:0.7em; color:#666; z-index:5;">FEVER</div>
+        <div id="gsCDFeverText" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:2em; font-weight:bold; color:#ffd700; opacity:0; z-index:12; text-shadow: 0 0 20px rgba(255,215,0,0.8); letter-spacing:6px;">FEVER!</div>
+        <div class="gs-combo" id="gsCDCombo" style="color:#ffd700; z-index:5;">0 Hit</div>
+        <div class="gs-hp-label" style="z-index:5;">BOSS HP</div>
+        <div class="gs-hp-bar" style="z-index:5;"><div class="gs-hp-fill" id="gsCDHp" style="width:80%"></div></div>
+        <div class="gs-player-dual" style="z-index:5;">
+          <span class="gs-glove gs-glove-left" id="gsCDGloveL">左 ✊</span>
+          <span class="gs-glove gs-glove-right" id="gsCDGloveR">右 👊</span>
+        </div>
+        <div class="gs-boss" id="gsCDBoss" style="z-index:5;">👹</div>
+        <div class="gs-hit-fx" id="gsCDHitFx" style="z-index:6;">💥</div>
+        <div class="gs-dmg" id="gsCDDmg" style="color:#ffd700; z-index:6;">-960</div>
+        <!-- QTE 弱點縮圈（D 階段用） -->
+        <div id="gsCDRing" style="position:absolute; right:35px; top:50%; transform:translateY(-50%); width:110px; height:110px; opacity:0; z-index:10;">
+          <div style="position:absolute; inset:0; border-radius:50%; border:3px solid #555;"></div>
+          <div id="gsCDRingShrink" style="position:absolute; inset:0; border-radius:50%; border:3px solid #ffd700; transform:scale(2); opacity:0;"></div>
+          <div style="position:absolute; inset:16px; border-radius:50%; border:2px dashed #666;"></div>
+          <div style="position:absolute; inset:30px; border-radius:50%; background:rgba(255,215,0,0.15); display:flex; align-items:center; justify-content:center; font-size:1.6em;">👊</div>
+        </div>
+        <div id="gsCDPerfect" style="position:absolute; right:45px; top:12%; font-size:1.1em; font-weight:bold; color:#69db7c; opacity:0; z-index:11; text-shadow: 0 0 10px rgba(105,219,124,0.8);">PERFECT!</div>
+        <!-- 拳譜 UI（Fever 階段才出現） -->
+        <div class="gs-timer" style="z-index:5;"><div class="gs-timer-bar" id="gsCDTimerBar" style="width:0%;"></div></div>
+        <div class="gs-recipe-ui" id="gsCDRecipeUI" style="z-index:5;"></div>
+      </div>
+      <p style="text-align:center; margin-top:6px; font-size:0.85em; color:#888;">自由揮拳(D弱點QTE) → Fever 條滿 → 拳譜模式(C)</p>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 11: 視覺特效 -->
+<div class="slide">
+  <h2>視覺特效（選配）</h2>
+  <h3>可搭配任何方案，由主管決定投入資源</h3>
+  <ul>
+    <li><s style="color:#666;">雙拳同時命中 → 衝擊波特效 + 螢幕震動</s> <span class="red">← 目前不可行（見演算法極限）</span></li>
+    <li>Combo 里程碑特效升級（數字更大、變色、著火）</li>
+    <li>Fever 專屬背景 / 粒子效果</li>
+    <li>Boss 受擊動畫更劇烈</li>
+  </ul>
+</div>
+
+<!-- Slide 12: 演算法測試結果（3/17 新增） -->
+<div class="slide">
+  <h2>演算法實測結果 <span style="font-size:0.5em; color:#666;">3/17 姿勢組 RD 回歸後測試</span></h2>
+  <h3>根因：目前套用的是雙拳演算法（不分左右手），影響 v9.11 單拳版 + 雙拳企劃</h3>
+  <table>
+    <tr><th>操作情境</th><th>結果</th><th>說明</th></tr>
+    <tr><td>一拳出 → 收 → 另一拳出 → 收</td><td><span class="green">✅ 正常</span></td><td>交替出拳，每拳完整收回</td></tr>
+    <tr><td>邊防禦邊打</td><td><span class="green">✅ 正常</span></td><td>一手維持防禦姿勢，另一手出拳</td></tr>
+    <tr><td>一手防禦一手攻擊</td><td><span class="green">✅ 最穩</span></td><td>身體不晃動，判定最準確</td></tr>
+    <tr><td>雙拳同時出擊</td><td><span class="red">❌ 有問題</span></td><td>兩手同時出拳無法正確判定</td></tr>
+    <tr><td>拳頭沒收回就揮下一拳</td><td><span class="red">❌ 有問題</span></td><td>身體姿勢改變干擾判定</td></tr>
+  </table>
+  <p style="margin-top: 20px; font-size: 1.15em;">結論：每次出拳後<span class="highlight">必須收回</span>，否則身體姿勢變化會干擾演算法</p>
+</div>
+
+<!-- Slide 13: 方案可行性排序（更新） -->
+<div class="slide">
+  <h2>方案可行性（更新）</h2>
+  <h3>根據演算法實測結果重新排序</h3>
+  <table>
+    <tr><th>排序</th><th>方案</th><th>可行性</th><th>理由</th></tr>
+    <tr><td>1</td><td><span class="tag tag-a">A</span> 動畫分左右</td><td><span class="green">最高</span></td><td>一手攻一手防已實測最穩，核心機制可行</td></tr>
+    <tr><td>2</td><td><span class="tag tag-b">B</span> 攻防分左右</td><td><span class="green">高</span></td><td>基於 A，弱點+防禦加方向，開發量增加不大</td></tr>
+    <tr><td>3</td><td><span class="tag tag-d">D</span> 節奏 QTE</td><td><span class="highlight">中</span></td><td>搭配用，不依賴同時出拳</td></tr>
+    <tr><td>4</td><td><span class="tag tag-c">C</span> 組合拳譜</td><td><span class="red">待定</span></td><td>需連續拳種判定，尚未確認</td></tr>
+  </table>
+  <p style="margin-top: 16px; font-size: 1.1em; color: #888;">「雙拳同時命中」視覺特效暫不可用，需等 RD 進一步調整</p>
+</div>
+
+<!-- Slide 14: 現況限制 -->
+<div class="slide">
+  <h2>現況限制</h2>
+  <table>
+    <tr><th>項目</th><th>狀態</th></tr>
+    <tr><td>左拳動畫</td><td><span class="red">有做但壞掉</span>，需美術檢查或重新設計</td></tr>
+    <tr><td>雙拳同時出擊</td><td><span class="red">❌ 不可行</span>（3/17 測試確認）</td></tr>
+    <tr><td>演算法連續判定</td><td><span class="red">未確認</span>（影響方案 C）</td></tr>
+    <tr><td>v9.11 演算法異常</td><td><span class="orange">處理中</span> — 根因為雙拳演算法不分左右手，姿勢組 RD 調整中</td></tr>
+    <tr><td>開發時間</td><td><span class="highlight">約一個半月</span></td></tr>
+  </table>
+</div>
+
+<!-- Slide 15: 待確認 -->
+<div class="slide">
+  <h2>待確認事項</h2>
+  <ul>
+    <li><span class="highlight">美術</span>：左拳動畫修復 vs 重做 vs 鏡像翻轉的工時</li>
+    <li><s style="color:#666;">姿勢組 RD：雙裝置同時揮拳能否判定</s> → <span class="red">❌ 不行（3/17 確認）</span></li>
+    <li><span class="highlight">姿勢組 RD</span>：連續拳種的順序判定準確率與延遲（方案 C 前提）</li>
+    <li><s style="color:#666;">姿勢組 RD：攻擊+防禦同時判定</s> → <span class="green">✅ 可行（3/17 確認）</span></li>
+    <li><span class="highlight">姿勢組 RD</span>：演算法能否改為左右手分開判定（若調整不好的 fallback）</li>
+    <li><span class="highlight">主管 / 老闆</span>：方案選擇 + 視覺特效資源</li>
+  </ul>
+</div>
+
+<!-- Slide 14: End -->
+<div class="slide">
+  <div class="title-deco">?</div>
+  <h2>討論時間</h2>
+  <p style="margin-top: 20px; color: #666; font-size: 1.2em;">方案可獨立選擇，也可組合搭配</p>
+  <table style="margin-top: 30px; width: auto;">
+    <tr><td><span class="tag tag-a">A</span></td><td>動畫分左右</td></tr>
+    <tr><td><span class="tag tag-b">B</span></td><td>攻防分左右</td></tr>
+    <tr><td><span class="tag tag-c">C</span></td><td>組合拳譜</td></tr>
+    <tr><td><span class="tag tag-d">D</span></td><td>節奏 QTE（搭配用）</td></tr>
+  </table>
+</div>
+
+<div class="nav" id="nav"></div>
+
+<script>
+// ===== 簡報切換 =====
+const slides = document.querySelectorAll('.slide');
+let current = 0;
+// 統一清理所有動畫用的 ID
+const activeIntervals = [];
+let gsAnim = null, qteAnim = null, qtgAnim = null;
+
+function clearAllAnims() {
+  activeIntervals.forEach(id => clearInterval(id));
+  activeIntervals.length = 0;
+  if (gsAnim) { cancelAnimationFrame(gsAnim); gsAnim = null; }
+  if (qteAnim) { cancelAnimationFrame(qteAnim); qteAnim = null; }
+  if (qtgAnim) { cancelAnimationFrame(qtgAnim); qtgAnim = null; }
+}
+
+function show(n) {
+  clearAllAnims();
+  slides[current].classList.remove('active');
+  current = Math.max(0, Math.min(n, slides.length - 1));
+  slides[current].classList.add('active');
+  document.getElementById('nav').textContent = (current + 1) + ' / ' + slides.length;
+  document.getElementById('progressBar').style.width = ((current + 1) / slides.length * 100) + '%';
+  const id = slides[current].id;
+  if (id === 'slideRecipe') startRecipeDemo();
+  if (id === 'slideRecipeGame') startGameScreenDemo();
+  if (id === 'slideQTE') startQTEDemo();
+  if (id === 'slideQTEGame') startQTEGameDemo();
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); show(current + 1); }
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); show(current - 1); }
+});
+document.addEventListener('click', e => {
+  if (e.clientX > window.innerWidth / 2) show(current + 1);
+  else show(current - 1);
+});
+
+// ===== 方案 A：Combo 計數器 =====
+let dualCount = 0, singleCount = 0;
+setInterval(() => { dualCount += 2; const el = document.getElementById('dualCombo'); if (el) el.textContent = dualCount + ' Hit'; }, 600);
+setInterval(() => { singleCount++; const el = document.getElementById('singleCombo'); if (el) el.textContent = singleCount + ' Hit'; }, 800);
+
+// ===== 方案 C：拳譜演示 =====
+function startRecipeDemo() {
+  runRecipe('recipeDual', 'recipeTimerDual', 'recipeResultDual', 5000, false);
+  runRecipe('recipeSingle', 'recipeTimerSingle', 'recipeResultSingle', 5000, true);
+}
+
+function runRecipe(trackId, timerId, resultId, duration, singleHand) {
+  const track = document.getElementById(trackId);
+  const timer = document.getElementById(timerId);
+  const result = document.getElementById(resultId);
+  const punches = track.querySelectorAll('.recipe-punch');
+  const total = punches.length;
+
+  punches.forEach(p => {
+    const isLeft = p.dataset.hand === 'L';
+    p.className = 'recipe-punch ' + (isLeft ? 'left-fist' : 'right-fist') + (singleHand && isLeft ? ' disabled' : '');
+  });
+  timer.style.width = '100%'; timer.className = 'recipe-timer-bar active'; result.textContent = '';
+
+  let step = 0, hitCount = 0;
+  const start = Date.now();
+  const hittable = Array.from(punches).map(p => !(singleHand && p.dataset.hand === 'L'));
+
+  const iv = setInterval(() => {
+    if (slides[current].id !== 'slideRecipe') { clearInterval(iv); return; }
+    const elapsed = Date.now() - start;
+    timer.style.width = (Math.max(0, 1 - elapsed / duration) * 100) + '%';
+    if (step < total && elapsed > (step + 1) * (duration * 0.8 / total)) {
+      if (hittable[step]) { punches[step].classList.add('hit'); hitCount++; } else { punches[step].classList.add('miss'); }
+      step++;
+    }
+    if (elapsed >= duration) {
+      clearInterval(iv); timer.style.width = '0%';
+      for (let i = step; i < total; i++) punches[i].classList.add('miss');
+      const pct = Math.round((hitCount / total) * 100);
+      const c = pct === 100 ? '#69db7c' : pct >= 50 ? '#ffd700' : '#ff6b6b';
+      result.innerHTML = '<span style="color:' + c + '">' + hitCount + '/' + total + ' = ' + pct + '% 傷害</span>';
+      setTimeout(() => { if (slides[current].id === 'slideRecipe') startRecipeDemo(); }, 2000);
+    }
+  }, 50);
+  activeIntervals.push(iv);
+}
+
+// ===== 方案 C：遊戲畫面動畫 =====
+const gsRecipeData = [
+  { hand: 'L', label: '🤛 左直' }, { hand: 'R', label: '👊 右鉤' },
+  { hand: 'L', label: '🤛 左上鉤' }, { hand: 'R', label: '👊 右直' },
+  { hand: 'L', label: '🤛 左鉤' }, { hand: 'R', label: '👊 右上鉤' },
+  { hand: 'L', label: '🤛 左直' }, { hand: 'R', label: '👊 右鉤' }
+];
+
+function buildRecipeUI(containerId, isSingle) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = gsRecipeData.map((d, i) => {
+    const cls = d.hand === 'L' ? 'gs-left' : 'gs-right';
+    const dis = isSingle && d.hand === 'L' ? ' gs-disabled' : '';
+    return (i > 0 ? '<span class="gs-arrow">→</span>' : '') +
+      '<span class="gs-punch ' + cls + dis + '">' + d.label + '</span>';
+  }).join('');
+}
+
+function animPunch(gloveId, anim, bossId, fxId, dmgId) {
+  const glove = document.getElementById(gloveId);
+  if (glove) { glove.style.animation = 'none'; glove.offsetHeight; glove.style.animation = anim; }
+  const boss = document.getElementById(bossId);
+  if (boss) { boss.classList.remove('shake'); boss.offsetHeight; boss.classList.add('shake'); }
+  const fx = document.getElementById(fxId);
+  if (fx) { fx.style.animation = 'none'; fx.offsetHeight; fx.style.animation = 'hitBurst 0.35s ease-out'; }
+  const dmg = document.getElementById(dmgId);
+  if (dmg) { dmg.style.animation = 'none'; dmg.offsetHeight; dmg.style.animation = 'dmgPop 0.5s ease-out'; }
+}
+
+function startGameScreenDemo() {
+  // 初始化兩邊
+  ['Dual', 'Single'].forEach(side => {
+    document.getElementById('gs' + side + 'RecipeUI').innerHTML = '';
+    document.getElementById('gs' + side + 'FeverBg').style.opacity = '0';
+    document.getElementById('gs' + side + 'FeverFill').style.width = '0%';
+    document.getElementById('gs' + side + 'FeverBar').style.display = 'block';
+    document.getElementById('gs' + side + 'FeverLabel').style.display = 'block';
+    document.getElementById('gs' + side + 'TimerBar').style.width = '0%';
+    document.getElementById('gs' + side + 'FeverText').style.opacity = '0';
+  });
+
+  const state = {
+    Dual: { hp: 85, combo: 0, fever: 0, phase: 'free', step: 0, lastPunch: Date.now(), enterTime: 0, isLeft: false },
+    Single: { hp: 95, combo: 0, fever: 0, phase: 'free', step: 0, lastPunch: Date.now(), enterTime: 0 }
+  };
+
+  function resetSide(side) {
+    const s = state[side];
+    s.hp = side === 'Dual' ? 85 : 95; s.combo = 0; s.fever = 0; s.phase = 'free'; s.step = 0; s.isLeft = false;
+    s.lastPunch = Date.now();
+    document.getElementById('gs' + side + 'Hp').style.width = s.hp + '%';
+    document.getElementById('gs' + side + 'Combo').textContent = '0 Hit';
+    document.getElementById('gs' + side + 'FeverBg').style.opacity = '0';
+    document.getElementById('gs' + side + 'FeverFill').style.width = '0%';
+    document.getElementById('gs' + side + 'FeverBar').style.display = 'block';
+    document.getElementById('gs' + side + 'FeverLabel').style.display = 'block';
+    document.getElementById('gs' + side + 'TimerBar').style.width = '0%';
+    document.getElementById('gs' + side + 'RecipeUI').innerHTML = '';
+    document.getElementById('gs' + side + 'FeverText').style.opacity = '0';
+    document.getElementById('gs' + side + 'Dmg').textContent = side === 'Dual' ? '-960' : '-640';
+    document.getElementById('gs' + side + 'Dmg').style.color = side === 'Dual' ? '#ffd700' : '#888';
+  }
+
+  function tickSide(side, now) {
+    const s = state[side];
+    const isSingle = side === 'Single';
+    const punchInterval = isSingle ? 900 : 600;
+    const feverPunchInterval = isSingle ? 700 : 450;
+
+    if (s.phase === 'free') {
+      if (now - s.lastPunch > punchInterval) {
+        s.lastPunch = now;
+        if (isSingle) {
+          animPunch('gsSingleGlove', 'gsPunchSingle 0.5s ease-out', 'gsSingleBoss', 'gsSingleHitFx', 'gsSingleDmg');
+        } else {
+          s.isLeft = !s.isLeft;
+          animPunch(s.isLeft ? 'gsDualGloveL' : 'gsDualGloveR', (s.isLeft ? 'gsPunchL' : 'gsPunchR') + ' 0.4s ease-out', 'gsDualBoss', 'gsDualHitFx', 'gsDualDmg');
+        }
+        s.hp = Math.max(0, s.hp - (isSingle ? 1 : 1.5)); s.combo++;
+        document.getElementById('gs' + side + 'Hp').style.width = s.hp + '%';
+        document.getElementById('gs' + side + 'Combo').textContent = s.combo + ' Hit';
+        s.fever = Math.min(100, s.fever + (isSingle ? 12 : 15));
+        document.getElementById('gs' + side + 'FeverFill').style.width = s.fever + '%';
+        if (s.fever >= 100) {
+          s.phase = 'fever_enter'; s.enterTime = now;
+          const ft = document.getElementById('gs' + side + 'FeverText');
+          ft.style.opacity = '1'; ft.style.animation = 'none'; ft.offsetHeight; ft.style.animation = 'fadeUp 0.4s ease-out';
+        }
+      }
+    } else if (s.phase === 'fever_enter') {
+      document.getElementById('gs' + side + 'FeverBg').style.opacity = '1';
+      document.getElementById('gs' + side + 'FeverBar').style.display = 'none';
+      document.getElementById('gs' + side + 'FeverLabel').style.display = 'none';
+      if (now - s.enterTime > 800) {
+        s.phase = 'fever'; s.step = 0; s.lastPunch = now;
+        document.getElementById('gs' + side + 'FeverText').style.opacity = '0';
+        document.getElementById('gs' + side + 'TimerBar').style.width = '100%';
+        document.getElementById('gs' + side + 'Dmg').textContent = isSingle ? '-640' : '-1280';
+        document.getElementById('gs' + side + 'Dmg').style.color = '#ff4500';
+        buildRecipeUI('gs' + side + 'RecipeUI', isSingle);
+      }
+    } else if (s.phase === 'fever') {
+      if (now - s.lastPunch > feverPunchInterval && s.step < 8) {
+        s.lastPunch = now;
+        const d = gsRecipeData[s.step];
+        const canHit = !(isSingle && d.hand === 'L');
+        if (canHit) {
+          if (isSingle) {
+            animPunch('gsSingleGlove', 'gsPunchSingle 0.4s ease-out', 'gsSingleBoss', 'gsSingleHitFx', 'gsSingleDmg');
+          } else {
+            animPunch(d.hand === 'L' ? 'gsDualGloveL' : 'gsDualGloveR', (d.hand === 'L' ? 'gsPunchL' : 'gsPunchR') + ' 0.35s ease-out', 'gsDualBoss', 'gsDualHitFx', 'gsDualDmg');
+          }
+          s.hp = Math.max(0, s.hp - (isSingle ? 2 : 4)); s.combo++;
+          document.getElementById('gs' + side + 'Hp').style.width = s.hp + '%';
+          document.getElementById('gs' + side + 'Combo').textContent = s.combo + ' Hit';
+        }
+        const cp = document.getElementById('gs' + side + 'RecipeUI').querySelectorAll('.gs-punch');
+        if (s.step > 0 && cp[s.step - 1]) cp[s.step - 1].classList.add('gs-done');
+        if (cp[s.step] && canHit) cp[s.step].classList.add('gs-active');
+        s.step++;
+      }
+      document.getElementById('gs' + side + 'TimerBar').style.width = (Math.max(0, 1 - s.step / 8) * 100) + '%';
+      if (s.step >= 8 && now - s.lastPunch > 1500) {
+        resetSide(side);
+      }
+    }
+  }
+
+  function tick() {
+    const now = Date.now();
+    tickSide('Dual', now);
+    tickSide('Single', now);
+    if (slides[current].id === 'slideRecipeGame') gsAnim = requestAnimationFrame(tick);
+  }
+  tick();
+}
+
+// ===== 方案 D：QTE 機制頁 =====
+function startQTEDemo() {
+  const track = document.getElementById('qteTrack');
+  const scanline = document.getElementById('qteScanline');
+  const shrink = document.getElementById('qteRingShrink');
+  const hitFlash = document.getElementById('qteHitFlash');
+  const hitText = document.getElementById('qteHitText');
+  const ringIcon = document.getElementById('qteRingIcon');
+
+  track.querySelectorAll('.qte-beat, .qte-beat-window, .qte-pulse').forEach(e => e.remove());
+
+  const beats = [8, 18, 28, 35, 45, 52, 62, 72, 80, 90];
+  const beatEls = [];
+  beats.forEach((pos, i) => {
+    const win = document.createElement('div');
+    win.className = 'qte-beat-window';
+    win.style.left = (pos - 3) + '%'; win.style.width = '6%';
+    win.style.background = i % 2 === 0 ? '#74c0fc' : '#ff8c00';
+    track.appendChild(win);
+    const beat = document.createElement('div');
+    beat.className = 'qte-beat ' + (i % 2 === 0 ? 'blue' : 'orange');
+    beat.style.left = pos + '%';
+    track.appendChild(beat);
+    beatEls.push({ pos, hit: false, isBlue: i % 2 === 0 });
+  });
+
+  const ringDuration = 1200;
+  let lastHitTime = 0;
+  const scanDuration = 4000;
+  const start = Date.now();
+
+  function animate() {
+    const now = Date.now();
+    const ringPct = ((now - start) % ringDuration) / ringDuration;
+    const scale = 2.2 - ringPct * 1.8;
+    const op = ringPct < 0.2 ? ringPct * 4 : ringPct > 0.85 ? (1 - ringPct) * 6 : 0.9;
+    shrink.style.transform = 'scale(' + scale.toFixed(2) + ')';
+    shrink.style.opacity = op.toFixed(2);
+    shrink.style.borderColor = (ringPct > 0.75 && ringPct < 0.9) ? '#69db7c' : '#ffd700';
+
+    if (ringPct > 0.82 && ringPct < 0.88 && now - lastHitTime > ringDuration * 0.8) {
+      lastHitTime = now;
+      hitFlash.style.animation = 'none'; hitFlash.offsetHeight; hitFlash.style.animation = 'qteHitGlow 0.5s ease-out';
+      hitText.style.animation = 'none'; hitText.offsetHeight; hitText.style.animation = 'qteHitText 0.6s ease-out';
+      ringIcon.style.transform = 'scale(1.3)'; setTimeout(() => { ringIcon.style.transform = 'scale(1)'; }, 150);
+    }
+
+    const scanPct = (((now - start) % scanDuration) / scanDuration) * 100;
+    scanline.style.left = scanPct + '%';
+    beatEls.forEach(b => {
+      if (!b.hit && Math.abs(scanPct - b.pos) < 2) {
+        b.hit = true;
+        const p = document.createElement('div');
+        p.className = 'qte-pulse';
+        p.style.left = (b.pos - 1) + '%';
+        p.style.background = b.isBlue ? 'rgba(116,192,252,0.6)' : 'rgba(255,140,0,0.6)';
+        p.style.animation = 'qtePulse 0.4s ease-out';
+        track.appendChild(p); setTimeout(() => p.remove(), 400);
+      }
+      if (scanPct < 5) b.hit = false;
+    });
+
+    if (slides[current].id === 'slideQTE') qteAnim = requestAnimationFrame(animate);
+  }
+  animate();
+}
+
+// ===== 方案 D：遊戲畫面（A+D 和 C+D） =====
+function startQTEGameDemo() {
+  // 初始化
+  document.getElementById('gsCDRecipeUI').innerHTML = '';
+  document.getElementById('gsCDFeverBg').style.opacity = '0';
+  document.getElementById('gsCDFeverFill').style.width = '0%';
+  document.getElementById('gsCDFeverBar').style.display = 'block';
+  document.getElementById('gsCDFeverLabel').style.display = 'block';
+  document.getElementById('gsCDTimerBar').style.width = '0%';
+
+  let adHp = 85, cdHp = 85, adCombo = 0, cdCombo = 0;
+  let lastAD = Date.now(), lastCD = Date.now();
+  let adIsLeft = false, cdIsLeft = false;
+  // C+D 階段: 'free' = 自由揮拳+QTE弱點, 'fever_enter' = FEVER!動畫, 'fever' = 拳譜模式
+  let cdPhase = 'free';
+  let cdFever = 0; // 0~100
+  let cdFeverStep = 0;
+  let cdFeverEnterTime = 0;
+
+  function animRing(ringId, shrinkId, perfectId) {
+    const ring = document.getElementById(ringId);
+    const sh = document.getElementById(shrinkId);
+    const pf = document.getElementById(perfectId);
+    if (!ring) return;
+    ring.style.opacity = '1';
+    sh.style.transform = 'scale(2)'; sh.style.opacity = '0.3'; sh.style.borderColor = '#ffd700';
+    const start = Date.now();
+    function shrinkAnim() {
+      const elapsed = Date.now() - start;
+      const pct = Math.min(1, elapsed / 600);
+      sh.style.transform = 'scale(' + (2 - pct * 1.5).toFixed(2) + ')';
+      sh.style.opacity = (0.3 + pct * 0.7).toFixed(2);
+      if (pct > 0.7) sh.style.borderColor = '#69db7c';
+      if (pct >= 1) {
+        pf.style.animation = 'none'; pf.offsetHeight; pf.style.animation = 'qteHitText 0.5s ease-out';
+        setTimeout(() => { ring.style.opacity = '0'; }, 200);
+        return;
+      }
+      requestAnimationFrame(shrinkAnim);
+    }
+    shrinkAnim();
+  }
+
+  function tick() {
+    const now = Date.now();
+
+    // ===== A+D: 自由揮拳 + QTE 弱點 =====
+    if (now - lastAD > 800) {
+      lastAD = now;
+      adIsLeft = !adIsLeft;
+      animPunch(adIsLeft ? 'gsADGloveL' : 'gsADGloveR', (adIsLeft ? 'gsPunchL' : 'gsPunchR') + ' 0.4s ease-out', 'gsADBoss', 'gsADHitFx', 'gsADDmg');
+      adHp = Math.max(0, adHp - 2); adCombo++;
+      document.getElementById('gsADHp').style.width = adHp + '%';
+      document.getElementById('gsADCombo').textContent = adCombo + ' Hit';
+      if (adCombo % 3 === 0) animRing('gsADRing', 'gsADRingShrink', 'gsADPerfect');
+    }
+
+    // ===== C+D: 兩階段 =====
+    if (cdPhase === 'free') {
+      // 自由揮拳 + QTE 弱點 + 累積 Fever
+      if (now - lastCD > 700) {
+        lastCD = now;
+        cdIsLeft = !cdIsLeft;
+        animPunch(cdIsLeft ? 'gsCDGloveL' : 'gsCDGloveR', (cdIsLeft ? 'gsPunchL' : 'gsPunchR') + ' 0.4s ease-out', 'gsCDBoss', 'gsCDHitFx', 'gsCDDmg');
+        cdHp = Math.max(0, cdHp - 1.5); cdCombo++;
+        document.getElementById('gsCDHp').style.width = cdHp + '%';
+        document.getElementById('gsCDCombo').textContent = cdCombo + ' Hit';
+        document.getElementById('gsCDDmg').textContent = '-960';
+        // QTE 弱點每 3 拳
+        if (cdCombo % 3 === 0) animRing('gsCDRing', 'gsCDRingShrink', 'gsCDPerfect');
+        // 累積 Fever
+        cdFever = Math.min(100, cdFever + 15);
+        document.getElementById('gsCDFeverFill').style.width = cdFever + '%';
+        if (cdFever >= 100) {
+          cdPhase = 'fever_enter';
+          cdFeverEnterTime = now;
+          // FEVER! 文字
+          const ft = document.getElementById('gsCDFeverText');
+          ft.style.opacity = '1';
+          ft.style.animation = 'none'; ft.offsetHeight;
+          ft.style.animation = 'fadeUp 0.4s ease-out';
+        }
+      }
+    } else if (cdPhase === 'fever_enter') {
+      // FEVER! 進場動畫 0.8 秒
+      document.getElementById('gsCDFeverBg').style.opacity = '1';
+      document.getElementById('gsCDFeverBar').style.display = 'none';
+      document.getElementById('gsCDFeverLabel').style.display = 'none';
+      document.getElementById('gsCDRing').style.opacity = '0'; // 弱點 QTE 消失
+      if (now - cdFeverEnterTime > 800) {
+        cdPhase = 'fever';
+        cdFeverStep = 0;
+        lastCD = now;
+        document.getElementById('gsCDFeverText').style.opacity = '0';
+        document.getElementById('gsCDTimerBar').style.width = '100%';
+        document.getElementById('gsCDDmg').textContent = '-1600';
+        document.getElementById('gsCDDmg').style.color = '#ff4500';
+        buildRecipeUI('gsCDRecipeUI', false);
+      }
+    } else if (cdPhase === 'fever') {
+      // 拳譜模式
+      if (now - lastCD > 450 && cdFeverStep < 8) {
+        lastCD = now;
+        const d = gsRecipeData[cdFeverStep];
+        animPunch(d.hand === 'L' ? 'gsCDGloveL' : 'gsCDGloveR', (d.hand === 'L' ? 'gsPunchL' : 'gsPunchR') + ' 0.35s ease-out', 'gsCDBoss', 'gsCDHitFx', 'gsCDDmg');
+        cdHp = Math.max(0, cdHp - 4); cdCombo++;
+        document.getElementById('gsCDHp').style.width = cdHp + '%';
+        document.getElementById('gsCDCombo').textContent = cdCombo + ' Hit';
+        const cp = document.getElementById('gsCDRecipeUI').querySelectorAll('.gs-punch');
+        if (cdFeverStep > 0 && cp[cdFeverStep - 1]) cp[cdFeverStep - 1].classList.add('gs-done');
+        if (cp[cdFeverStep]) cp[cdFeverStep].classList.add('gs-active');
+        cdFeverStep++;
+      }
+      document.getElementById('gsCDTimerBar').style.width = (Math.max(0, 1 - cdFeverStep / 8) * 100) + '%';
+
+      // 拳譜結束 → 等 1.5 秒重播
+      if (cdFeverStep >= 8 && now - lastCD > 1500) {
+        cdPhase = 'free'; cdFever = 0; cdFeverStep = 0;
+        cdHp = 85; cdCombo = 0;
+        document.getElementById('gsCDFeverBg').style.opacity = '0';
+        document.getElementById('gsCDFeverFill').style.width = '0%';
+        document.getElementById('gsCDFeverBar').style.display = 'block';
+        document.getElementById('gsCDFeverLabel').style.display = 'block';
+        document.getElementById('gsCDHp').style.width = '85%';
+        document.getElementById('gsCDCombo').textContent = '0 Hit';
+        document.getElementById('gsCDTimerBar').style.width = '0%';
+        document.getElementById('gsCDRecipeUI').innerHTML = '';
+        document.getElementById('gsCDDmg').textContent = '-960';
+        document.getElementById('gsCDDmg').style.color = '#ffd700';
+        lastCD = now;
+      }
+    }
+
+    // A+D 循環（跟著 C+D 一起）
+    if (cdPhase === 'free' && cdFever === 0 && cdCombo === 0) {
+      adHp = 85; adCombo = 0;
+      document.getElementById('gsADHp').style.width = '85%';
+      document.getElementById('gsADCombo').textContent = '0 Hit';
+    }
+
+    if (slides[current].id === 'slideQTEGame') qtgAnim = requestAnimationFrame(tick);
+  }
+  tick();
+}
+
+show(0);
+</script>
+</body>
+</html>

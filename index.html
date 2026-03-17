@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jacfitness — 知識庫視圖</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Microsoft JhengHei', 'Noto Sans TC', sans-serif; background: #0a0a0a; color: #f0f0f0; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; }
+  h1 { font-size: 2.5em; margin-bottom: 8px; letter-spacing: 4px; }
+  .subtitle { color: #666; font-size: 1.1em; margin-bottom: 48px; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; width: 100%; max-width: 800px; }
+  .card { background: linear-gradient(135deg, #1a1a1a, #141414); border: 1px solid #2a2a2a; border-radius: 16px; padding: 32px; text-decoration: none; color: #f0f0f0; transition: all 0.2s; }
+  .card:hover { border-color: #ffd700; transform: translateY(-4px); box-shadow: 0 8px 32px rgba(255,215,0,0.08); }
+  .card h2 { font-size: 1.4em; margin-bottom: 8px; color: #ffd700; }
+  .card p { color: #888; font-size: 1em; line-height: 1.6; }
+  .card .tag { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 0.8em; margin-top: 12px; }
+  .tag-live { background: #2d4a2d; color: #69db7c; border: 1px solid #3d6a3d; }
+  .tag-wip { background: #4a3d2d; color: #ffd700; border: 1px solid #6a5d3d; }
+  .footer { margin-top: 48px; color: #333; font-size: 0.85em; }
+</style>
+</head>
+<body>
+  <h1>Jacfitness</h1>
+  <p class="subtitle">知識庫靜態視圖</p>
+  <div class="cards">
+    <a class="card" href="presentation/jsg01-dual-fist.html">
+      <h2>JSG01 雙拳模式</h2>
+      <p>方案討論互動簡報（A/B/C/D 四方案 + 動畫展示）</p>
+      <span class="tag tag-live">簡報</span>
+    </a>
+    <a class="card" href="progress/">
+      <h2>進度總覽</h2>
+      <p>本週焦點、風險追蹤、Bug 狀態、人員工作量</p>
+      <span class="tag tag-live">週報</span>
+    </a>
+  </div>
+  <p class="footer">來源：jacfitness-knowledge-base（私人）→ 自動產生靜態頁面</p>
+</body>
+</html>
